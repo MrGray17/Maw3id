@@ -1,13 +1,18 @@
-# Dependency tracking folders (Never commit these)
+# Dependency tracking folders
 node_modules/
 backend/node_modules/
 frontend/node_modules/
+node_modules.partial_install/
+node_modules.partial_install_*/
+.npm-cache/
+.npm-logs/
 
-# Local Environment secrets
+# Local environment secrets
 .env
 backend/.env
+.env.local
 
-# Production build outputs & system artifacts
+# Production build outputs and system artifacts
 frontend/dist/
 .DS_Store
 Thumbs.db
