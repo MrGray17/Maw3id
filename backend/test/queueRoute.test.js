@@ -2,9 +2,11 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { createApp } from '../src/app.js';
+import { hashSessionSecret } from '../src/auth/sessionService.js';
 
 const QUEUE_SESSION_ID = '0198b8be-b3ae-7d24-8f8a-6550de959f01';
 const PATIENT_ID = '0198b8be-f9a1-7659-bb8a-e07b3fef1d28';
+const CSRF_TOKEN = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
 function testConfig() {
   return {
@@ -14,6 +16,9 @@ function testConfig() {
     serviceName: 'maw3id-api-test',
     allowedOrigins: ['http://localhost:5173'],
     databaseUrl: null,
+    sessionCookieName: 'maw3id_session',
+    sessionIdleTtlSeconds: 1800,
+    sessionAbsoluteTtlSeconds: 604800,
   };
 }
 
@@ -44,7 +49,11 @@ describe('POST /api/v1/queue-sessions/:queueSessionId/tickets', () => {
     const authenticate = (req, _res, next) => {
       const role = req.get('x-test-role');
       if (role) {
-        req.auth = { userId: PATIENT_ID, role };
+        req.auth = {
+          userId: PATIENT_ID,
+          role,
+          csrfTokenHash: hashSessionSecret(CSRF_TOKEN),
+        };
       }
       next();
     };
@@ -104,6 +113,7 @@ describe('POST /api/v1/queue-sessions/:queueSessionId/tickets', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        'x-csrf-token': CSRF_TOKEN,
         'x-test-role': 'doctor',
       },
       body: '{}',
@@ -122,6 +132,7 @@ describe('POST /api/v1/queue-sessions/:queueSessionId/tickets', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        'x-csrf-token': CSRF_TOKEN,
         'x-test-role': 'patient',
       },
       body: '{}',
@@ -141,6 +152,7 @@ describe('POST /api/v1/queue-sessions/:queueSessionId/tickets', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        'x-csrf-token': CSRF_TOKEN,
         'x-test-role': 'patient',
       },
       body: '{"broken":',
@@ -159,6 +171,7 @@ describe('POST /api/v1/queue-sessions/:queueSessionId/tickets', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        'x-csrf-token': CSRF_TOKEN,
         'x-test-role': 'patient',
       },
       body: JSON.stringify({ padding: 'x'.repeat(33 * 1024) }),
@@ -177,6 +190,7 @@ describe('POST /api/v1/queue-sessions/:queueSessionId/tickets', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        'x-csrf-token': CSRF_TOKEN,
         'x-test-role': 'patient',
       },
       body: JSON.stringify({ patientId: 'someone-else' }),
@@ -196,6 +210,7 @@ describe('POST /api/v1/queue-sessions/:queueSessionId/tickets', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        'x-csrf-token': CSRF_TOKEN,
         'x-request-id': 'queue-route-test',
         'x-test-role': 'patient',
       },
@@ -217,5 +232,23 @@ describe('POST /api/v1/queue-sessions/:queueSessionId/tickets', () => {
       source: 'online',
       requestId: 'queue-route-test',
     });
+  });
+
+  it('rejects a missing or incorrect CSRF token', async () => {
+    serviceCallCount = 0;
+
+    const response = await fetch(`${baseUrl}/api/v1/queue-sessions/${QUEUE_SESSION_ID}/tickets`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-test-role': 'patient',
+      },
+      body: '{}',
+    });
+    const body = await response.json();
+
+    assert.equal(response.status, 403);
+    assert.equal(body.error.code, 'csrf_validation_failed');
+    assert.equal(serviceCallCount, 0);
   });
 });

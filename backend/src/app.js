@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { passThroughAuthentication } from './auth/authorization.js';
+import { createSessionAuthentication } from './auth/sessionAuthentication.js';
 import { loadConfig } from './config.js';
 import { pool as defaultPool } from './db/pool.js';
 import { errorHandler, notFoundHandler } from './http/errors.js';
@@ -12,7 +12,13 @@ import { createQueueRouter } from './routes/queue.js';
 export function createApp(config = loadConfig(), dependencies = {}) {
   const app = express();
   const pool = dependencies.pool ?? defaultPool;
-  const authenticate = dependencies.authenticate ?? passThroughAuthentication;
+  const authenticate =
+    dependencies.authenticate ??
+    createSessionAuthentication({
+      pool,
+      cookieName: config.sessionCookieName,
+      idleTtlSeconds: config.sessionIdleTtlSeconds,
+    });
   const joinQueueService = dependencies.joinQueueService ?? joinQueue;
 
   app.disable('x-powered-by');

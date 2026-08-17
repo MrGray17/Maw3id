@@ -34,7 +34,10 @@ export function cors(allowedOrigins) {
       res.setHeader('vary', 'Origin');
       res.setHeader('access-control-allow-credentials', 'true');
       res.setHeader('access-control-allow-methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-      res.setHeader('access-control-allow-headers', 'Content-Type,Authorization,X-Request-Id');
+      res.setHeader(
+        'access-control-allow-headers',
+        'Content-Type,Authorization,X-CSRF-Token,X-Request-Id',
+      );
     }
 
     if (req.method === 'OPTIONS') {

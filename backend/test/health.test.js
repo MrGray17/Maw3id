@@ -15,6 +15,9 @@ describe('health endpoints', () => {
       serviceName: 'maw3id-api-test',
       allowedOrigins: ['http://localhost:5173'],
       databaseUrl: null,
+      sessionCookieName: 'maw3id_session',
+      sessionIdleTtlSeconds: 1800,
+      sessionAbsoluteTtlSeconds: 604800,
     });
 
     server = app.listen(0);
