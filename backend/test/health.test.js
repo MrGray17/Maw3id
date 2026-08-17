@@ -56,6 +56,18 @@ describe('health endpoints', () => {
     assert.equal(response.headers.get('x-frame-options'), 'DENY');
   });
 
+  it('replaces unsafe caller-provided request ids', async () => {
+    const response = await fetch(`${baseUrl}/healthz`, {
+      headers: {
+        'x-request-id': 'unsafe request id with spaces',
+      },
+    });
+
+    const requestId = response.headers.get('x-request-id');
+    assert.notEqual(requestId, 'unsafe request id with spaces');
+    assert.match(requestId, /^[0-9a-f-]{36}$/);
+  });
+
   it('returns structured errors for unknown routes', async () => {
     const response = await fetch(`${baseUrl}/missing`);
     const body = await response.json();

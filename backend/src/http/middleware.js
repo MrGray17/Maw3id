@@ -1,8 +1,14 @@
 import crypto from 'node:crypto';
 
+const REQUEST_ID_PATTERN = /^[A-Za-z0-9._:-]{1,128}$/;
+
+function safeRequestId(value) {
+  return typeof value === 'string' && REQUEST_ID_PATTERN.test(value) ? value : crypto.randomUUID();
+}
+
 export function requestContext(config) {
   return (req, res, next) => {
-    const requestId = req.get('x-request-id') || crypto.randomUUID();
+    const requestId = safeRequestId(req.get('x-request-id'));
     req.id = requestId;
     req.config = config;
     req.log = console;

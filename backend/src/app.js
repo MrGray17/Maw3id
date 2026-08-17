@@ -1,13 +1,19 @@
 import express from 'express';
 
-import bookingRoutes from '../routes/bookingRoutes.js';
+import { passThroughAuthentication } from './auth/authorization.js';
 import { loadConfig } from './config.js';
+import { pool as defaultPool } from './db/pool.js';
 import { errorHandler, notFoundHandler } from './http/errors.js';
 import { cors, requestContext, securityHeaders } from './http/middleware.js';
+import { joinQueue } from './queue/queueService.js';
 import { healthRouter } from './routes/health.js';
+import { createQueueRouter } from './routes/queue.js';
 
-export function createApp(config = loadConfig()) {
+export function createApp(config = loadConfig(), dependencies = {}) {
   const app = express();
+  const pool = dependencies.pool ?? defaultPool;
+  const authenticate = dependencies.authenticate ?? passThroughAuthentication;
+  const joinQueueService = dependencies.joinQueueService ?? joinQueue;
 
   app.disable('x-powered-by');
 
@@ -17,7 +23,7 @@ export function createApp(config = loadConfig()) {
   app.use(express.json({ limit: '32kb' }));
 
   app.use(healthRouter(config));
-  app.use('/api/v1', bookingRoutes);
+  app.use('/api/v1', createQueueRouter({ pool, authenticate, joinQueueService }));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

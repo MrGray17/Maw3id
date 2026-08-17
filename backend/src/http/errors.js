@@ -13,10 +13,18 @@ export function notFoundHandler(req, _res, next) {
 }
 
 export function errorHandler(err, req, res, _next) {
-  const isAppError = err instanceof AppError;
-  const statusCode = isAppError ? err.statusCode : 500;
-  const code = isAppError ? err.code : 'internal_server_error';
-  const message = isAppError ? err.message : 'Internal server error.';
+  let normalizedError = err;
+
+  if (err instanceof SyntaxError && err.type === 'entity.parse.failed') {
+    normalizedError = new AppError(400, 'invalid_json', 'Request body contains invalid JSON.');
+  } else if (err.type === 'entity.too.large') {
+    normalizedError = new AppError(413, 'payload_too_large', 'Request body is too large.');
+  }
+
+  const isAppError = normalizedError instanceof AppError;
+  const statusCode = isAppError ? normalizedError.statusCode : 500;
+  const code = isAppError ? normalizedError.code : 'internal_server_error';
+  const message = isAppError ? normalizedError.message : 'Internal server error.';
 
   if (statusCode >= 500) {
     req.log?.error?.({
@@ -34,7 +42,7 @@ export function errorHandler(err, req, res, _next) {
       code,
       message,
       requestId: req.id,
-      details: isAppError ? err.details : undefined,
+      details: isAppError ? normalizedError.details : undefined,
     },
   });
 }

@@ -94,7 +94,7 @@ Thresholds must be configurable per specialty later. V1 can start with platform 
 
 V1 is not production-ready until it has:
 
-1. password hashing and secure session/JWT handling;
+1. secure multi-provider identity linking and revocable browser sessions;
 2. role-based and resource-level authorization;
 3. input validation at API boundaries;
 4. rate limiting for auth and ticket creation;
@@ -104,3 +104,5 @@ V1 is not production-ready until it has:
 8. database backups and migration discipline;
 9. health checks and structured logs;
 10. tests for the queue race conditions.
+
+Google sign-in is optional, not the only login path. Patient phone verification, privileged-user MFA, secure account linking, and session rules are defined in `docs/AUTH_AND_SECURITY.md`.
