@@ -1,16 +1,21 @@
-# React + Vite
+# Maw3id Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Application web React/TypeScript destinée aux patients et cabinets médicaux. Cette première tranche fournit la recherche publique mobile-first avec des états explicites, une validation stricte des réponses API et un emplacement réservé à la carte réelle.
 
-Currently, two official plugins are available:
+## Démarrage local
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm ci
+cp .env.example .env.local
+npm run dev
+```
 
-## React Compiler
+L'API locale est attendue sur `http://127.0.0.1:3000/api/v1`. Le fond de carte reste volontairement désactivé tant que `VITE_MAP_STYLE_URL` ne pointe pas vers un fournisseur autorisé pour la production.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Contrôles
 
-## Expanding the ESLint configuration
+```bash
+npm run check
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Cette commande exécute le typage TypeScript, ESLint, les tests Vitest et la construction de production.
