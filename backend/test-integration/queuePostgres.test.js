@@ -129,7 +129,13 @@ before(async () => {
   const migrations = await pool.query('SELECT filename FROM schema_migrations ORDER BY filename');
   assert.deepEqual(
     migrations.rows.map((row) => row.filename),
-    ['001_core_schema.sql', '002_identity_and_sessions.sql', '003_public_doctor_search_indexes.sql'],
+    [
+      '001_core_schema.sql',
+      '002_identity_and_sessions.sql',
+      '003_public_doctor_search_indexes.sql',
+      '004_phone_otp_challenges.sql',
+      '005_phone_otp_rate_limit_index.sql',
+    ],
     'Run the database migrations before the integration suite.',
   );
 });

@@ -36,6 +36,20 @@ Phone numbers are normalized to E.164. OTP challenges are short-lived, single-us
 
 Controls include per-phone, per-IP, per-device, and platform-wide rate limits; resend cooldowns; provider timeouts; replay prevention; cost alarms; and a recovery process for recycled or lost numbers. SMS delivery is never treated as proof that a person is a licensed doctor.
 
+### Current implementation
+
+The patient web flow uses `POST /api/v1/auth/phone/request` and
+`POST /api/v1/auth/phone/verify`. Challenges are PostgreSQL-backed, HMAC-hashed,
+five-minute, single-use, attempt-limited, and protected by phone/IP/platform limits.
+Successful verification creates an opaque HttpOnly cookie session. The browser can
+restore a session through `GET /api/v1/auth/session` and revoke it through
+`POST /api/v1/auth/logout` with CSRF protection.
+
+Local development may use `OTP_DELIVERY_MODE=development`, which returns the code
+only in the development response. Production refuses that mode and requires an HTTPS
+provider URL, provider token, and a separate OTP hashing pepper. Provider-side cost
+alarms and a reviewed lost/recycled-number recovery workflow remain deployment gates.
+
 ## Authorization
 
 Authentication answers who the user is. Authorization independently checks what that user may do to this resource.

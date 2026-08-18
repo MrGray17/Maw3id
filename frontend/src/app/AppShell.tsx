@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <nav className="site-nav" aria-label="Navigation principale">
             <a href="#fonctionnement">Comment ça marche</a>
-            <span className="site-nav__future" aria-label="Espace patient bientôt disponible">Espace patient</span>
+            <Link className="site-nav__future" to="/espace-patient">Espace patient</Link>
           </nav>
         </div>
       </header>

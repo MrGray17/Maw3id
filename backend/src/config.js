@@ -73,6 +73,10 @@ export function loadConfig(env = process.env) {
     sessionCookieName: env.SESSION_COOKIE_NAME || 'maw3id_session',
     sessionIdleTtlSeconds,
     sessionAbsoluteTtlSeconds,
+    otpHashPepper: env.OTP_HASH_PEPPER || (nodeEnv === 'production' ? null : 'development-only-otp-pepper'),
+    otpDeliveryMode: env.OTP_DELIVERY_MODE || (nodeEnv === 'production' ? 'http' : 'development'),
+    otpProviderUrl: env.OTP_PROVIDER_URL || null,
+    otpProviderToken: env.OTP_PROVIDER_TOKEN || null,
   };
 }
 
@@ -112,5 +116,23 @@ export function assertProductionConfig(config = loadConfig()) {
 
   if (!config.sessionCookieName.startsWith('__Host-')) {
     throw new Error('Production session cookies must use the __Host- prefix.');
+  }
+
+  if (!config.otpHashPepper || config.otpHashPepper.length < 32) {
+    throw new Error('Production requires an OTP_HASH_PEPPER of at least 32 characters.');
+  }
+
+  if (config.otpDeliveryMode !== 'http' || !config.otpProviderUrl || !config.otpProviderToken) {
+    throw new Error('Production requires the HTTP OTP provider URL and token.');
+  }
+
+  let otpProviderUrl;
+  try {
+    otpProviderUrl = new URL(config.otpProviderUrl);
+  } catch {
+    throw new Error('OTP_PROVIDER_URL must be a valid HTTPS URL.');
+  }
+  if (otpProviderUrl.protocol !== 'https:') {
+    throw new Error('OTP_PROVIDER_URL must be a valid HTTPS URL.');
   }
 }

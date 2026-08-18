@@ -60,6 +60,10 @@ describe('configuration', () => {
       DATABASE_URL: 'postgresql://example',
       CORS_ALLOWED_ORIGINS: 'https://app.maw3id.ma',
       SESSION_COOKIE_NAME: '__Host-maw3id_session',
+      OTP_HASH_PEPPER: 'a-secure-production-pepper-value-123456789',
+      OTP_DELIVERY_MODE: 'http',
+      OTP_PROVIDER_URL: 'https://sms.example.test/send',
+      OTP_PROVIDER_TOKEN: 'provider-secret',
     });
     assert.doesNotThrow(() => assertProductionConfig(valid));
   });
@@ -88,5 +92,15 @@ describe('configuration', () => {
       SESSION_COOKIE_NAME: '__Host-maw3id_session',
     });
     assert.throws(() => assertProductionConfig(wrongDatabaseProtocol), /PostgreSQL protocol/);
+  });
+
+  it('rejects unsafe production OTP delivery configuration', () => {
+    const config = loadConfig({
+      NODE_ENV: 'production', DATABASE_URL: 'postgresql://example',
+      CORS_ALLOWED_ORIGINS: 'https://app.maw3id.ma', SESSION_COOKIE_NAME: '__Host-maw3id_session',
+      OTP_HASH_PEPPER: 'a-secure-production-pepper-value-123456789', OTP_DELIVERY_MODE: 'http',
+      OTP_PROVIDER_URL: 'http://sms.example.test/send', OTP_PROVIDER_TOKEN: 'provider-secret',
+    });
+    assert.throws(() => assertProductionConfig(config), /valid HTTPS URL/);
   });
 });

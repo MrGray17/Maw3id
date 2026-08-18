@@ -101,3 +101,15 @@ export async function revokeSession({ pool, sessionId, userId, reason = 'user_lo
 
   return result.rows[0] ?? null;
 }
+
+export async function rotateCsrfToken({ pool, sessionId }) {
+  const csrfToken = generateSessionSecret();
+  const result = await pool.query(
+    `UPDATE auth_sessions
+     SET csrf_token_hash = $2
+     WHERE id = $1 AND revoked_at IS NULL
+     RETURNING id`,
+    [sessionId, hashSessionSecret(csrfToken)],
+  );
+  return result.rowCount === 1 ? csrfToken : null;
+}
