@@ -32,4 +32,15 @@ npm run db:migrate
 
 `db:migrate` applies every SQL file in `db/migrations/` once and records applied files in `schema_migrations`.
 
+After migrating an isolated database whose name ends in `_test` or `_validation`, run the
+PostgreSQL-backed queue checks:
+
+```bash
+npm run test:integration
+```
+
+The integration suite deliberately refuses to run against any other database name. It creates
+unique fixtures, exercises committed queue transactions and concurrency, and removes its data
+after each test.
+
 Future implementation note: the app can move to Prisma, Drizzle, or node-pg-migrate before a real pilot. The SQL files here define the intended database contract and constraints.

@@ -6,6 +6,8 @@ import { pool as defaultPool } from './db/pool.js';
 import { errorHandler, notFoundHandler } from './http/errors.js';
 import { cors, requestContext, securityHeaders } from './http/middleware.js';
 import { joinQueue } from './queue/queueService.js';
+import { searchNearbyDoctors } from './search/doctorSearchService.js';
+import { createDoctorRouter } from './routes/doctors.js';
 import { healthRouter } from './routes/health.js';
 import { createQueueRouter } from './routes/queue.js';
 
@@ -20,6 +22,8 @@ export function createApp(config = loadConfig(), dependencies = {}) {
       idleTtlSeconds: config.sessionIdleTtlSeconds,
     });
   const joinQueueService = dependencies.joinQueueService ?? joinQueue;
+  const doctorSearchService =
+    dependencies.doctorSearchService ?? ((input) => searchNearbyDoctors({ pool, ...input }));
 
   app.disable('x-powered-by');
 
@@ -29,6 +33,7 @@ export function createApp(config = loadConfig(), dependencies = {}) {
   app.use(express.json({ limit: '32kb' }));
 
   app.use(healthRouter(config));
+  app.use('/api/v1', createDoctorRouter({ searchService: doctorSearchService }));
   app.use('/api/v1', createQueueRouter({ pool, authenticate, joinQueueService }));
 
   app.use(notFoundHandler);
